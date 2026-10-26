@@ -8,12 +8,25 @@ WHITE = (255, 255, 255)
 RED = (220, 60, 60)
 
 class GameEngine:
-    def __init__(self, width, height):
+    
+    def __init__(
+        self,
+        width,
+        height,
+        base_radius=40,
+        min_radius=12,
+        lifespan_frames=90,
+    ):
         self.width = width
         self.height = height
 
         self.margin = 60
         self.hud_height = 60
+
+        self.base_radius = base_radius
+        self.min_radius = min_radius
+        self.lifespan_frames = lifespan_frames
+
         self.target = self._spawn_target()
 
         self.round_seconds = 30
@@ -22,13 +35,27 @@ class GameEngine:
         self.hits = 0
         self.misses = 0
         self.score = 0
+
         self.font = pygame.font.SysFont("Arial", 26)
         self.game_over = False
 
+
+    
     def _spawn_target(self):
         x = random.randint(self.margin, self.width - self.margin)
-        y = random.randint(self.margin + self.hud_height, self.height - self.margin)
-        return Target(x, y)
+        y = random.randint(
+            self.margin + self.hud_height,
+            self.height - self.margin
+        )
+
+        return Target(
+            x,
+            y,
+            base_radius=self.base_radius,
+            min_radius=self.min_radius,
+            lifespan_frames=self.lifespan_frames,
+        )
+
 
     def handle_event(self, event):
         if self.game_over:
