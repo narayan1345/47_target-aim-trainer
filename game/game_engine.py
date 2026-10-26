@@ -1,11 +1,33 @@
 import pygame
 import random
+import math
+from array import array
 from .target import Target
 
 # Game Engine
 
 WHITE = (255, 255, 255)
 RED = (220, 60, 60)
+
+
+def create_tone(frequency, duration, volume=0.25):
+    sample_rate = 44100
+    samples = int(sample_rate * duration)
+
+    buffer = array("h")
+
+    for i in range(samples):
+        value = int(
+            32767
+            * volume
+            * math.sin(
+                2 * math.pi * frequency * i / sample_rate
+            )
+        )
+        buffer.append(value)
+
+    return pygame.mixer.Sound(buffer=buffer)
+
 
 class GameEngine:
     
@@ -39,6 +61,10 @@ class GameEngine:
         self.font = pygame.font.SysFont("Arial", 26)
         self.game_over = False
 
+        self.hit_sound = create_tone(880, 0.08)
+        self.miss_sound = create_tone(220, 0.12)
+        self.game_over_sound = create_tone(440, 0.5)
+
 
     
     def _spawn_target(self):
@@ -63,14 +89,21 @@ class GameEngine:
         if event.type == pygame.MOUSEBUTTONDOWN:
             self._handle_click(event.pos)
 
+   
     def _handle_click(self, pos):
         x, y = pos
+
         if self.target.contains_point(x, y):
             self.hits += 1
             self.score += 1
+
+            self.hit_sound.play()
             self.target = self._spawn_target()
+
         else:
             self.misses += 1
+            self.miss_sound.play()
+
 
     def handle_input(self):
         # Reserved for continuously-held-key input; this game is
@@ -82,14 +115,20 @@ class GameEngine:
             return
 
         self.time_left_frames -= 1
+        
         if self.time_left_frames <= 0:
             self.game_over = True
+            self.game_over_sound.play()
             return
 
+
         self.target.update()
+        
         if self.target.expired():
-            self.misses += 1  # letting a target time out counts as a miss too
+            self.misses += 1
+            self.miss_sound.play()
             self.target = self._spawn_target()
+
 
     def accuracy(self):
         total = self.hits + self.misses
