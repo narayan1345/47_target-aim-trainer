@@ -70,22 +70,83 @@ class GameEngine:
             return 0.0
         return round(100 * self.hits / total, 1)
 
+    
     def render(self, screen):
-        r = int(self.target.visual_radius())
-        pygame.draw.circle(screen, RED, (self.target.x, self.target.y), r)
-        pygame.draw.circle(screen, WHITE, (self.target.x, self.target.y), r, 2)
+        if not self.game_over:
+            # Draw the target during gameplay
+            r = int(self.target.visual_radius())
+            pygame.draw.circle(
+                screen, RED, (self.target.x, self.target.y), r
+            )
+            pygame.draw.circle(
+                screen, WHITE, (self.target.x, self.target.y), r, 2
+            )
 
-        score_text = self.font.render(f"Score: {self.score}", True, WHITE)
+        # Display the HUD
+        score_text = self.font.render(
+            f"Score: {self.score}", True, WHITE
+        )
         screen.blit(score_text, (10, 10))
 
         seconds_left = max(0, self.time_left_frames // 60)
-        timer_text = self.font.render(f"Time: {seconds_left}s", True, WHITE)
+        timer_text = self.font.render(
+            f"Time: {seconds_left}s", True, WHITE
+        )
         screen.blit(timer_text, (self.width - 140, 10))
 
-        acc_text = self.font.render(f"Accuracy: {self.accuracy()}%", True, WHITE)
-        screen.blit(acc_text, (self.width // 2 - 90, 10))
+        acc_text = self.font.render(
+            f"Accuracy: {self.accuracy()}%", True, WHITE
+        )
+        screen.blit(
+            acc_text, (self.width // 2 - 90, 10)
+        )
 
-        if self.game_over and not getattr(self, "_game_over_logged", False):
-            # NOTE: no proper game-over screen yet - see Task 2 in the README.
-            print(f"Time's up! Final score: {self.score}  Accuracy: {self.accuracy()}%")
-            self._game_over_logged = True
+        # Display the Game Over screen
+        if self.game_over:
+            overlay = pygame.Surface(
+                (self.width, self.height), pygame.SRCALPHA
+            )
+            overlay.fill((0, 0, 0, 180))
+            screen.blit(overlay, (0, 0))
+
+            title_font = pygame.font.SysFont("Arial", 56)
+            result_font = pygame.font.SysFont("Arial", 32)
+            instruction_font = pygame.font.SysFont("Arial", 24)
+
+            title = title_font.render(
+                "GAME OVER", True, WHITE
+            )
+            final_score = result_font.render(
+                f"Final Score: {self.score}", True, WHITE
+            )
+            final_accuracy = result_font.render(
+                f"Final Accuracy: {self.accuracy()}%", True, WHITE
+            )
+            instruction = instruction_font.render(
+                "Round complete!", True, WHITE
+            )
+
+            screen.blit(
+                title,
+                title.get_rect(
+                    center=(self.width // 2, self.height // 2 - 100)
+                )
+            )
+            screen.blit(
+                final_score,
+                final_score.get_rect(
+                    center=(self.width // 2, self.height // 2 - 30)
+                )
+            )
+            screen.blit(
+                final_accuracy,
+                final_accuracy.get_rect(
+                    center=(self.width // 2, self.height // 2 + 20)
+                )
+            )
+            screen.blit(
+                instruction,
+                instruction.get_rect(
+                    center=(self.width // 2, self.height // 2 + 90)
+                )
+            )
